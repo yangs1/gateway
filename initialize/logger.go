@@ -1,6 +1,7 @@
 package initialize
 
 import (
+	"gateway/global"
 	"gateway/pkg/util"
 	"github.com/mitchellh/mapstructure"
 	"github.com/natefinch/lumberjack"
@@ -27,7 +28,7 @@ type LogConfigs struct {
 }
 
 func InitLogger() error {
-	vcfg, err := util.ReadConfigFile("logger")
+	vcfg, err := util.ReadConfigFile("app")
 	if err != nil {
 		return err
 	}
@@ -64,7 +65,8 @@ func InitLogger() error {
 	// 3. 使用 zap.S() 和 zap.L() 提供全局锁，保证一个全局的安全访问logger的方式
 	zap.ReplaceGlobals(lg)
 
-	Mylog = lg
+	global.Logger = lg
+
 	return nil
 }
 

@@ -34,7 +34,7 @@ func ReadConfigFile(fileName string) (*viper.Viper, error) {
 	v.SetConfigType("yaml")
 	v.AddConfigPath(rootDir + "/config")
 	v.SetConfigName(fileName)
-	log.Println(rootDir)
+
 	if err := v.ReadInConfig(); err != nil {
 		log.Printf("读取 %s 配置文件失败", fileName)
 		return nil, err

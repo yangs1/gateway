@@ -11,9 +11,10 @@ import (
 	"time"
 )
 
-var HttpServerHandler *http.Server
+//var HttpServerHandler *http.Server
 
-func StartHttpServer() error {
+func (engine *GatewayEngine) StartHttpServer() error {
+
 	vcfg, err := util.ReadConfigFile("app")
 	if err != nil {
 		global.Logger.Error("general配置文件读取失败", zap.Error(err))
@@ -21,7 +22,7 @@ func StartHttpServer() error {
 	}
 
 	r := router.Router()
-	HttpServerHandler = &http.Server{
+	engine.HttpServerHandler = &http.Server{
 		Handler: r, //gin.Engine
 		Addr:    vcfg.GetString("http.address"),
 		//time.Duration单位纳秒
@@ -29,20 +30,23 @@ func StartHttpServer() error {
 		WriteTimeout:   time.Duration(vcfg.GetInt("http.write_timeout")) * time.Second,
 		MaxHeaderBytes: 1 << vcfg.GetInt("http.max_header_bytes"),
 	}
-
-	if err := HttpServerHandler.ListenAndServe(); err != nil {
+	//go func() {
+	//	log.Println(http.ListenAndServe(":6060", nil))
+	//}()
+	if err := engine.HttpServerHandler.ListenAndServe(); err != nil {
 		global.Logger.Error("http server start error.", zap.Error(err))
 	}
 
 	return nil
 }
 
-func StopHttpServer() {
+func (engine *GatewayEngine) StopHttpServer() {
 	// 调用Server.Shutdown graceful结束
 	timeoutCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := HttpServerHandler.Shutdown(timeoutCtx); err != nil {
+	if err := engine.HttpServerHandler.Shutdown(timeoutCtx); err != nil {
 		log.Println("Server Shutdown:", err)
 	}
+	log.Println("Server finished !")
 }

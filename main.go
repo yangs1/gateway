@@ -11,8 +11,10 @@ import (
 func main() {
 	initialize.InitLogger()
 
+	engine := provider.NewGatewayEngine()
+
 	go func() {
-		provider.StartHttpServer()
+		engine.StartHttpServer()
 	}()
 	// 当前的goroutine等待信号量
 	quit := make(chan os.Signal)
@@ -21,6 +23,6 @@ func main() {
 	// 这里会阻塞当前goroutine等待信号
 	<-quit
 
-	provider.StopHttpServer()
+	engine.StopHttpServer()
 
 }

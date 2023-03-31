@@ -1,7 +1,7 @@
 http:
   address: ":8080"                   #监听地址
   read_timeout: 10                   #读取超时时长
-  write_timeout: 10                  #写入超时时长
+  write_timeout: 90                  #写入超时时长
   max_header_bytes: 20               #最大的header大小，二进制位长度
   allow_ip: ["127.0.0.1"]                 #白名单ip列表
   time_loc: "Asia/Shanghai"  #设置你的时区,中国内用shanghai chongqing比较多
@@ -9,11 +9,11 @@ http:
 logConf:
   #trace debug info warn error fatal panic
   level: info #logrus.TraceLevel DebugLevel InfoLevel WarnLevel ErrorLevel FatalLevel PanicLevel(logrus高等级的不打印)
-  format : json
+  format : logfmt # logfmt | json
   logPath: ./storage/logs
   logFileName: gin.log
   maxSize: 10 #Mib,每个日志文件大小
   maxBackups: 10 #日志文件个数
   maxAge: 1 #day,保留多少天
   compress: true #是否压缩
-  LogStdout: true
+  LogStdout: false

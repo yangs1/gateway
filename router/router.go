@@ -12,10 +12,12 @@ func Router() *gin.Engine {
 	// 性能分析
 	//pprof.Register(router)
 
-	// 记录请求日志
-	router.Use(middleware.LogMiddleware())
-	// 替换 gin 的 recovery 处理方法
-	router.Use(middleware.LogRecoveryMiddleware(false))
+	router.Use(
+		middleware.LogMiddleware(),              // 记录请求日志
+		middleware.LogRecoveryMiddleware(false), // 替换 gin 的 recovery 处理方法
+
+	)
+
 	// default request
 	router.GET("/", func(context *gin.Context) {
 		//panic("bbb")

@@ -14,7 +14,6 @@ import (
 //var HttpServerHandler *http.Server
 
 func (engine *GatewayEngine) StartHttpServer() error {
-
 	vcfg, err := util.ReadConfigFile("app")
 	if err != nil {
 		global.Logger.Error("general配置文件读取失败", zap.Error(err))

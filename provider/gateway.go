@@ -1,6 +1,8 @@
 package provider
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type GatewayEngine struct {
 	HttpServerHandler *http.Server

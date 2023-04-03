@@ -9,6 +9,8 @@ import (
 	"sync"
 )
 
+var ServiceManagerHandler *ServiceManager
+
 //专门用于处理service的对象
 type ServiceManager struct {
 	lb   map[string]loadBalance.LoadBalance
@@ -16,28 +18,39 @@ type ServiceManager struct {
 	err  error
 }
 
+func init() {
+	ServiceManagerHandler = &ServiceManager{
+		lb:   make(map[string]loadBalance.LoadBalance),
+		init: sync.Once{},
+	}
+}
+
+func (manager *ServiceManager) GetLoadBalancer(lbType string) loadBalance.LoadBalance {
+	return manager.lb[lbType]
+}
+
 func InitLoadBalance() error {
-	global.ServiceManagerHandler.init.Do(func() {
+	ServiceManagerHandler.init.Do(func() {
 		vcfg, err := util.ReadConfigFile("proxy")
 		if err != nil {
 			global.Logger.Error("general配置文件读取失败", zap.Error(err))
-			global.ServiceManagerHandler.err = err
+			ServiceManagerHandler.err = err
 			return
 		}
 
 		var loadBalanceNodes []loadBalance.BalanceNode
 
-		if err := mapstructure.Decode(vcfg.Get("http_proxy"), loadBalanceNodes); err != nil {
+		if err := mapstructure.Decode(vcfg.Get("http_proxy"), &loadBalanceNodes); err != nil {
 			global.Logger.Error("加载代理配置失败", zap.Error(err))
-			global.ServiceManagerHandler.err = err
+			ServiceManagerHandler.err = err
 			return
 		}
 
 		lbManager := loadBalance.NewLoadBalance(vcfg.GetInt("load_type"))
 		lbManager.Add(loadBalanceNodes...)
 
-		global.ServiceManagerHandler.lb["http_proxy"] = lbManager
+		ServiceManagerHandler.lb["http_proxy"] = lbManager
 	})
 
-	return global.ServiceManagerHandler.err
+	return ServiceManagerHandler.err
 }

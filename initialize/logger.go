@@ -13,8 +13,6 @@ import (
 	"strings"
 )
 
-var Mylog *zap.Logger
-
 type LogConfigs struct {
 	Level       string // 日志打印级别 debug  info  warning  error
 	Format      string // 输出日志格式	logfmt, json

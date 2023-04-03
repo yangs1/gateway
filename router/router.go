@@ -15,7 +15,7 @@ func Router() *gin.Engine {
 	router.Use(
 		middleware.LogMiddleware(),              // 记录请求日志
 		middleware.LogRecoveryMiddleware(false), // 替换 gin 的 recovery 处理方法
-
+		middleware.HttpReverseProxyMiddleware(), //代理到实际的服务工作负载
 	)
 
 	// default request

@@ -10,12 +10,13 @@ import (
 
 func main() {
 	initialize.InitLogger()
+	initialize.InitLoadBalance()
 
 	engine := provider.NewGatewayEngine()
 
-	go func() {
-		engine.StartHttpServer()
-	}()
+	//go func() {
+	//	engine.StartHttpServer()
+	//}()
 	// 当前的goroutine等待信号量
 	quit := make(chan os.Signal)
 	// 监控信号：SIGINT, SIGTERM, SIGQUIT

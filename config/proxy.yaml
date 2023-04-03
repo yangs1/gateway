@@ -1,0 +1,11 @@
+load_type: 0 # 0: 随机   1：平滑  2：平滑加权  3：hash
+read_timeout: 10
+effective_weight: 5
+
+http_proxy:
+- addr: "127.0.01:9090"                   #监听地址
+  weight: 10                   #权重
+
+- addr: "127.0.01:9091"                   #监听地址
+  weight: 5                   #权重
+

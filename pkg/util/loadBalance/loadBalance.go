@@ -7,14 +7,14 @@ type LoadBalance interface {
 
 // 节点数据
 type BalanceNode struct {
-	Addr   string
-	Weight int
+	Addr   string `yaml:"addr"`
+	Weight int    `yaml:"weight"`
 }
 
 const (
 	LbRandom int = iota
 	LbRoundRobin
-	LbRoundRobinWithWeiht
+	LbRoundRobinWithWeight
 	LbRandHash
 )
 
@@ -26,7 +26,7 @@ func NewLoadBalance(lbType int) LoadBalance {
 		lb = &RandomBalance{}
 	case LbRoundRobin:
 		lb = &RoundRobinBalance{}
-	case LbRoundRobinWithWeiht:
+	case LbRoundRobinWithWeight:
 		lb = &RoundRobinWithWeightBalance{}
 	case LbRandHash:
 		lb = &RandHashBalance{}

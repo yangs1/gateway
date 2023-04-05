@@ -16,4 +16,4 @@ logConf:
   maxBackups: 10 #日志文件个数
   maxAge: 1 #day,保留多少天
   compress: true #是否压缩
-  LogStdout: false
+  LogStdout: true

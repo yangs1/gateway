@@ -24,3 +24,7 @@ func (r *RandHashBalance) Get(key string) (string, error) {
 
 	return r.rss[index], nil
 }
+
+func (r *RandHashBalance) Check() {
+
+}

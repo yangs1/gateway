@@ -52,4 +52,3 @@ func NewLoadBalanceReverseProxy(target *url.URL) *httputil.ReverseProxy {
 
 	return proxyRev
 }
-

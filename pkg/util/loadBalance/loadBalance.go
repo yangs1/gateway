@@ -3,6 +3,7 @@ package loadBalance
 type LoadBalance interface {
 	Add(...BalanceNode) error
 	Get(string) (string, error)
+	Check()
 }
 
 // 节点数据

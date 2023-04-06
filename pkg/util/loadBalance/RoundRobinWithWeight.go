@@ -53,3 +53,7 @@ func (r *RoundRobinWithWeightBalance) Next() string {
 func (r *RoundRobinWithWeightBalance) Get(key string) (string, error) {
 	return r.Next(), nil
 }
+
+func (r *RoundRobinWithWeightBalance) Check() {
+
+}

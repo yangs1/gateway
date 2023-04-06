@@ -85,6 +85,9 @@ func (manager *ServiceManager) GetLoadBalancer() loadBalance.LoadBalance {
 	manager.loadBalanceHandler = loadBalance.NewLoadBalance(manager.pxyCfg.LoadType)
 	manager.loadBalanceHandler.Add(manager.pxyCfg.rss...)
 
+	httpChecker := loadBalance.NewLbChecker(manager.loadBalanceHandler, 5)
+	httpChecker.HttpWatch()
+	
 	return manager.loadBalanceHandler
 }
 

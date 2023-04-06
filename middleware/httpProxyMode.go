@@ -4,6 +4,7 @@ import (
 	"gateway/global"
 	"gateway/initialize"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"net/http/httputil"
 	"net/url"
 )
@@ -27,48 +28,19 @@ func HttpReverseProxyMiddleware() gin.HandlerFunc {
 
 		target, err := url.Parse(pryUrl)
 
-		proxy := httputil.NewSingleHostReverseProxy(target)
-		proxy.ServeHTTP(ctx.Writer, ctx.Request) //提供http服务(也是http服务暴露出去)
+		proxy := httputil.NewSingleHostReverseProxy(target) //NewLoadBalanceReverseProxy(target)
+		proxy.ServeHTTP(ctx.Writer, ctx.Request)            //提供http服务(也是http服务暴露出去)
 		ctx.Abort()
 		return
 	}
 }
 
-//新建一个实际的http的代理服务器(处理http https请求),gin的middleware调用
-/*func NewLoadBalanceReverseProxy(c *gin.Context, lb loadBalance.LoadBalance, trans *http.Transport) *httputil.ReverseProxy {
-	//请求协调者
-	//请求协调者
-	director := func(req *http.Request) {
-		nextAddr, err := lb.Get(req.URL.String())
-		if err != nil || nextAddr == "" {
-			panic("get next addr fail")
-		}
-		target, err := url.Parse(nextAddr)
-		if err != nil {
-			panic(err)
-		}
-		targetQuery := target.RawQuery
-		req.URL.Scheme = target.Scheme
-		req.URL.Host = target.Host
-		req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
-		req.Host = target.Host
-		if targetQuery == "" || req.URL.RawQuery == "" {
-			req.URL.RawQuery = targetQuery + req.URL.RawQuery
-		} else {
-			req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
-		}
-		if _, ok := req.Header["User-Agent"]; !ok {
-			req.Header.Set("User-Agent", "user-agent")
-		}
-	}
+//处理一些自定义配置的 ReverseProxy
+func NewLoadBalanceReverseProxy(target *url.URL) *httputil.ReverseProxy {
 
-	//更改内容
-	modifyFunc := func(resp *http.Response) error {
-		if strings.Contains(resp.Header.Get("Connection"), "Upgrade") { //判断Upgrade是否在connection中,协议升级,ws
-			return nil
-		}
-		return nil
-	}
+	proxyRev := httputil.NewSingleHostReverseProxy(target)
+
+	proxyRev.Transport = initialize.ServiceManagerHandler.GetTrans()
 
 	//错误回调 ：关闭real_server时测试，错误回调
 	//范围：transport.RoundTrip发生的错误、以及ModifyResponse发生的错误
@@ -76,6 +48,8 @@ func HttpReverseProxyMiddleware() gin.HandlerFunc {
 		//middleware.ResponseError(c, 999, err)
 		global.Logger.Info("调用错误回调函数")
 	}
-	return &httputil.ReverseProxy{Director: director, ModifyResponse: modifyFunc, ErrorHandler: errFunc}
+	proxyRev.ErrorHandler = errFunc
+
+	return proxyRev
 }
-*/
+

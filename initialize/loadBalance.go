@@ -89,6 +89,7 @@ func (manager *ServiceManager) GetLoadBalancer() loadBalance.LoadBalance {
 }
 
 // 获取连接池
+//@see https://www.bbsmax.com/A/gGdX3GMG54/
 func (manager *ServiceManager) GetTrans() *http.Transport {
 	if manager.transportHandler != nil {
 		return manager.transportHandler

@@ -17,6 +17,7 @@ func NewLbChecker(lb LoadBalance, weight int) *LoadBalanceChecker {
 }
 
 func (checker *LoadBalanceChecker) HttpWatch() {
+
 	go func() {
 		t := time.NewTicker(time.Second * 5)
 

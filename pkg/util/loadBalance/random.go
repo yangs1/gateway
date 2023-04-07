@@ -52,7 +52,7 @@ func (r *RandomBalance) Check() {
 			failRss = append(failRss, target)
 			continue
 		}
-		if res.StatusCode >= 200 && res.StatusCode < 400 {
+		if res.StatusCode >= 200 && res.StatusCode < 500 {
 			successRss = append(successRss, target)
 		} else {
 			failRss = append(failRss, target)
@@ -62,13 +62,8 @@ func (r *RandomBalance) Check() {
 	r.rss = successRss
 	r.failRss = failRss
 
-	global.Logger.Info("=====================Success=================================================")
-	for _, tar := range successRss {
-		global.Logger.Info(tar)
+	global.Logger.Info("=========== success =============")
+	for _, rs := range successRss {
+		global.Logger.Info(rs)
 	}
-	global.Logger.Info("=========================Fail=============================================")
-	for _, tar := range failRss {
-		global.Logger.Info(tar)
-	}
-
 }

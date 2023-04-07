@@ -1,5 +1,10 @@
 package loadBalance
 
+import (
+	"log"
+	"net/http"
+)
+
 type RoundRobinWithWeightBalance struct {
 	curIndex int
 	rss      []*WeightNode
@@ -56,4 +61,40 @@ func (r *RoundRobinWithWeightBalance) Get(key string) (string, error) {
 
 func (r *RoundRobinWithWeightBalance) Check() {
 
+	for _, target := range r.rss {
+		log.Println(target.effectiveWeight)
+	}
+	client := http.Client{}
+	for _, target := range r.rss {
+
+		res, err := client.Head(target.Addr)
+		if res != nil {
+			defer res.Body.Close()
+		}
+
+		minStep := (target.Weight / 3)
+		if minStep <= 0 {
+			minStep = 1
+		}
+		if err != nil {
+			if target.effectiveWeight > 0 {
+				target.effectiveWeight -= minStep
+			}
+			continue
+		}
+
+		if res.StatusCode >= 200 && res.StatusCode < 500 {
+			if target.effectiveWeight < target.Weight {
+				target.effectiveWeight += minStep
+			}
+		} else {
+			if target.effectiveWeight > 0 {
+				target.effectiveWeight -= minStep
+			}
+		}
+
+		if target.effectiveWeight > target.Weight {
+			target.effectiveWeight = target.Weight
+		}
+	}
 }

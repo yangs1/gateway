@@ -1,4 +1,4 @@
-load_type: 0 # 0: 随机   1：平滑  2：平滑加权  3：hash
+load_type: 2 # 0: 随机   1：平滑  2：平滑加权  3：hash
 effective_weight: 5 # 默认有效权重
 connect_timeout : 90 # 建立连接超时, 单位s
 header_timeout : 30 # 发送完request后等待serve response的时间

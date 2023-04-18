@@ -1,107 +1,60 @@
 package initialize
 
 import (
-	"gateway/global"
-	"gateway/pkg/util"
-	"github.com/mitchellh/mapstructure"
+	"fmt"
+	"gateway/config"
+	"gateway/utils"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
 	"path"
-	"path/filepath"
-	"strings"
+	"time"
 )
 
-type LogConfigs struct {
-	Level       string // 日志打印级别 debug  info  warning  error
-	Format      string // 输出日志格式	logfmt, json
-	LogPath     string // 输出日志文件路径
-	LogFileName string // 输出日志文件名称
-	MaxSize     int    // 【日志分割】单个日志文件最多存储量 单位(mb)
-	MaxBackups  int    // 【日志分割】日志备份文件最多数量
-	MaxAge      int    // 日志保留时间，单位: 天 (day)
-	Compress    bool   // 是否压缩日志
-	LogStdout   bool   // 是否输出到控制台
-}
-
-func InitLogger() error {
-	vcfg, err := util.ReadConfigFile("app")
-	if err != nil {
-		return err
+func Zap() (logger *zap.Logger) {
+	workDir := path.Dir(config.GVA_CONFIG.Zap.LogPath)
+	if ok, _ := utils.DirIsExists(workDir, true); !ok { // 判断是否有Director文件夹
+		fmt.Printf("create %v directory\n", workDir)
+		_ = os.Mkdir(workDir, os.ModePerm)
 	}
 
-	logcfg := LogConfigs{}
+	var z = new(_zap)
+	cores := z.getZapCores()
+	logger = zap.New(zapcore.NewTee(cores...))
 
-	if err := mapstructure.Decode(vcfg.Get("logConf"), &logcfg); err != nil {
-		return err
+	if config.GVA_CONFIG.Zap.ShowLine { // zap.Addcaller() 输出日志打印文件和行数如： logger/logger_test.go:33
+		logger = logger.WithOptions(zap.AddCaller())
 	}
 
-	writeSyncer, err := getLogWriter(logcfg) // 日志文件配置 文件位置和切割
-	if err != nil {
-		return err
-	}
-	encoder := getEncoder(logcfg) // 获取日志输出编码
-
-	logLevel := map[string]zapcore.Level{
-		"debug": zapcore.DebugLevel,
-		"info":  zapcore.InfoLevel,
-		"warn":  zapcore.WarnLevel,
-		"error": zapcore.ErrorLevel,
-	}
-
-	level, ok := logLevel[logcfg.Level] // 日志打印级别
-	if !ok {
-		level = logLevel["info"]
-	}
-
-	core := zapcore.NewCore(encoder, writeSyncer, level)
-
-	lg := zap.New(core, zap.AddCaller()) // zap.Addcaller() 输出日志打印文件和行数如： logger/logger_test.go:33
 	// 1. zap.ReplaceGlobals 函数将当前初始化的 logger 替换到全局的 logger,
 	// 2. 使用 logger 的时候 直接通过 zap.S().Debugf("xxx") or zap.L().Debug("xxx")
 	// 3. 使用 zap.S() 和 zap.L() 提供全局锁，保证一个全局的安全访问logger的方式
-	zap.ReplaceGlobals(lg)
+	zap.ReplaceGlobals(logger)
 
-	global.Logger = lg
-
-	return nil
+	return logger
 }
 
 // getLogWriter 获取日志输出方式  日志文件 控制台
-func getLogWriter(conf LogConfigs) (zapcore.WriteSyncer, error) {
-	defaultLogPath := util.GetRootPath() + "/storage/logs/"
-	workerLogPath := conf.LogPath
-	dirLists := strings.Split(conf.LogPath, "/")
+func getLogWriter(level string) (zapcore.WriteSyncer, error) {
 
-	if dirLists[0] == "." || dirLists[0] == ".." {
-		workerLogPath = path.Dir(util.GetRootPath() + "/" + conf.LogPath + "/")
-	}
+	zapConfig := config.GVA_CONFIG.Zap
 
-	// 判断日志路径是否存在，如果不存在就创建
-	if exist := util.IsExist(workerLogPath); !exist {
-		if workerLogPath == "" {
-			workerLogPath = defaultLogPath
-		}
-
-		if err := os.MkdirAll(workerLogPath, os.ModePerm); err != nil {
-			workerLogPath = defaultLogPath
-			if err := os.MkdirAll(workerLogPath, os.ModePerm); err != nil {
-				return nil, err
-			}
-		}
+	fileName := fmt.Sprintf("%s_%s.log", config.GVA_CONFIG.Zap.FileName, level)
+	if level == "" {
+		fileName = fmt.Sprintf("%s.log", config.GVA_CONFIG.Zap.FileName)
 	}
 
 	// 日志文件 与 日志切割 配置
 	lumberJackLogger := &lumberjack.Logger{
-		Filename:   filepath.Join(workerLogPath, conf.LogFileName), // 日志文件路径
-		MaxSize:    conf.MaxSize,                                   // 单个日志文件最大多少 mb
-		MaxBackups: conf.MaxBackups,                                // 日志备份数量
-		MaxAge:     conf.MaxAge,                                    // 日志最长保留时间
-		Compress:   conf.Compress,                                  // 是否压缩日志
+		Filename:   path.Join(zapConfig.LogPath, fileName), // 日志文件路径
+		MaxSize:    zapConfig.MaxSize,                      // 单个日志文件最大多少 mb
+		MaxBackups: zapConfig.MaxBackups,                   // 日志备份数量
+		MaxAge:     zapConfig.MaxAge,                       // 日志最长保留时间
+		Compress:   zapConfig.Compress,                     // 是否压缩日志
 	}
 
-	if conf.LogStdout {
+	if zapConfig.LogStdout {
 		// 日志同时输出到控制台和日志文件中
 		return zapcore.NewMultiWriteSyncer(zapcore.AddSync(lumberJackLogger), zapcore.AddSync(os.Stdout)), nil
 	} else {
@@ -110,15 +63,104 @@ func getLogWriter(conf LogConfigs) (zapcore.WriteSyncer, error) {
 	}
 }
 
+type _zap struct{}
+
 // getEncoder 编码器(如何写入日志)
-func getEncoder(conf LogConfigs) zapcore.Encoder {
+func (z *_zap) getEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder   // log 时间格式 例如: 2021-09-11t20:05:54.852+0800
-	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder // 输出level序列化为全大写字符串，如 INFO DEBUG ERROR
+	encoderConfig.EncodeTime = z.CustomTimeEncoder                     // log 时间格式 例如: 2021-09-11t20:05:54.852+0800
+	encoderConfig.EncodeLevel = config.GVA_CONFIG.Zap.ZapEncodeLevel() // 输出level序列化为全大写字符串，如 INFO DEBUG ERROR
 	//encoderConfig.EncodeCaller = zapcore.FullCallerEncoder
 	//encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	if conf.Format == "json" {
+	if config.GVA_CONFIG.Zap.Format == "json" {
 		return zapcore.NewJSONEncoder(encoderConfig) // 以json格式写入
 	}
 	return zapcore.NewConsoleEncoder(encoderConfig) // 以logfmt格式写入
+}
+
+// CustomTimeEncoder 自定义日志输出时间格式
+func (z *_zap) CustomTimeEncoder(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
+	// zapcore.ISO8601TimeEncoder  // log 时间格式 例如: 2021-09-11t20:05:54.852+0800
+	encoder.AppendString(t.Format("2006-01-02 15:04:05.000"))
+}
+
+// getZapCores 根据配置文件的Level获取 []zapcore.Core
+func (z *_zap) getZapCores() []zapcore.Core {
+	cores := make([]zapcore.Core, 0)
+
+	// 判断是否根据 level 拆分成多个 文件
+	if config.GVA_CONFIG.Zap.SplitLevel {
+		for level := config.GVA_CONFIG.Zap.TransportLevel(); level <= zapcore.FatalLevel; level++ {
+			cores = append(cores, z.getEncoderCoreByLevel(level))
+		}
+	} else {
+		cores = append(cores, z.getEncoderCore())
+	}
+
+	return cores
+}
+
+// getEncoderCoreByLevel 获取Encoder的 zapcore.Core
+func (z *_zap) getEncoderCoreByLevel(level zapcore.Level) zapcore.Core {
+	writer, err := getLogWriter(level.String()) // 使用lumberJackLogger进行日志分割
+	if err != nil {
+		fmt.Printf("Get Write Syncer Failed err:%v", err.Error())
+		return nil
+	}
+
+	return zapcore.NewCore(z.getEncoder(), writer, z.getLevelPriority(level))
+}
+
+// getEncoderCore 获取Encoder的 zapcore.Core
+func (z *_zap) getEncoderCore() zapcore.Core {
+	writer, err := getLogWriter("") // 使用lumberJackLogger进行日志分割
+	if err != nil {
+		fmt.Printf("Get Write Syncer Failed err:%v", err.Error())
+		return nil
+	}
+
+	level, err := zapcore.ParseLevel(config.GVA_CONFIG.Zap.Level)
+	if err != nil {
+		level = zap.InfoLevel
+	}
+	return zapcore.NewCore(z.getEncoder(), writer, level)
+
+}
+
+// 自定义错误级别范围
+func (z *_zap) getLevelPriority(l zapcore.Level) zap.LevelEnablerFunc {
+	switch l {
+	case zapcore.DebugLevel:
+		return func(level zapcore.Level) bool { // 调试级别
+			return level == zap.DebugLevel
+		}
+	case zapcore.InfoLevel:
+		return func(level zapcore.Level) bool { // 日志级别
+			return level == zap.InfoLevel
+		}
+	case zapcore.WarnLevel:
+		return func(level zapcore.Level) bool { // 警告级别
+			return level == zap.WarnLevel
+		}
+	case zapcore.ErrorLevel:
+		return func(level zapcore.Level) bool { // 错误级别
+			return level == zap.ErrorLevel
+		}
+	case zapcore.DPanicLevel:
+		return func(level zapcore.Level) bool { // dpanic级别
+			return level == zap.DPanicLevel
+		}
+	case zapcore.PanicLevel:
+		return func(level zapcore.Level) bool { // panic级别
+			return level == zap.PanicLevel
+		}
+	case zapcore.FatalLevel:
+		return func(level zapcore.Level) bool { // 终止级别
+			return level == zap.FatalLevel
+		}
+	default:
+		return func(level zapcore.Level) bool { // 调试级别
+			return level == zap.DebugLevel
+		}
+	}
 }

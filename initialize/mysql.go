@@ -18,7 +18,6 @@ type writer struct {
 
 // Printf 格式化打印日志
 func (w *writer) Printf(message string, data ...interface{}) {
-	//fmt.Println("???????")
 	if config.GVA_CONFIG.Mysql.LogZap {
 		config.GVA_LOG.Info(fmt.Sprintf(message+"\n", data...))
 	} else {
@@ -76,13 +75,13 @@ func (g *_gorm) getOrmConfig(prefix string, logModel string) *gorm.Config {
 	_default := logger.New(logWriter, logger.Config{
 		SlowThreshold: 200 * time.Millisecond,
 		LogLevel:      logger.Warn,
-		Colorful:      true,
+		Colorful:      false,
 	})
 
 	if logModel == "debug" {
 		cfg.Logger = _default.LogMode(logger.Info)
 	}
-	//cfg.Logger = logger.Default.LogMode(logger.Info) //_default.LogMode(logger.Info)
+	//cfg.Logger = logger.Default.LogMode(logger.Info) //默认log writer
 
 	return cfg
 }

@@ -61,6 +61,7 @@ func Viper(rawVal interface{}, path ...string) *viper.Viper {
 	if rawVal != nil {
 		v.WatchConfig()
 
+		// TODO restart server
 		v.OnConfigChange(func(e fsnotify.Event) {
 			fmt.Println("config file changed:", e.Name)
 			if err := v.Unmarshal(rawVal); err != nil {

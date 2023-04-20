@@ -36,6 +36,8 @@ func main() {
 		<-quit
 
 		engine.(*http.Server).Stop()
+	} else {
+		log.Fatal("http server start error:", err)
 	}
 
 	log.Println("http server close.")

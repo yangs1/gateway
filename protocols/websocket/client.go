@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"fmt"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 	"time"
@@ -54,15 +55,15 @@ func (c *Client) Read() {
 		return nil
 	})
 	for {
-		//_, message, err := c.conn.ReadMessage()
-		_, _, err := c.conn.ReadMessage()
+		_, message, err := c.conn.ReadMessage()
+		//_, _, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
 				zap.L().Error("IsUnexpectedCloseError err: "+err.Error(), zap.Error(err))
 			}
 			break
 		}
-		//log.Info("msg :" + string(message))
+		fmt.Println("msg :" + string(message))
 	}
 }
 

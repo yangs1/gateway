@@ -1,6 +1,8 @@
-package http
+package router
 
 import (
+	"gateway/protocols"
+	"gateway/protocols/websocket"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,6 +24,11 @@ func RegisterRouter() *gin.Engine {
 		//panic("bbb")
 		context.Writer.Write([]byte("hello world!!!"))
 	})
+
+	// start websocket server
+	if ws, err := protocols.ServerIoc.Load(websocket.Protocol); err == nil {
+		router.GET("/ws", ws.(*websocket.Server).ServeWs)
+	}
 
 	return router
 }

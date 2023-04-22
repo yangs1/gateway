@@ -4,6 +4,7 @@ import (
 	"context"
 	"gateway/config"
 	"gateway/config/autoload"
+	"gateway/router"
 	"go.uber.org/zap"
 	"net/http"
 	"time"
@@ -28,7 +29,7 @@ func (s *Server) Config() interface{} {
 // Run start http server.
 func (s *Server) Run() {
 	httpCfg := s.Config().(autoload.Http)
-	r := RegisterRouter()
+	r := router.RegisterRouter()
 
 	s.HttpServerHandler = &http.Server{
 		Handler: r, //gin.Engine

@@ -7,8 +7,8 @@ type Server struct {
 }
 
 type ServerDetail struct {
-	BaseInfo *loadBalance.ServerInfo
-	LbNodes *[]
+	BaseInfo    *loadBalance.ServerInfo
+	LoadBalance *LoadBalanceNode
 }
 
 func (s *Server) IsBind() bool {
@@ -21,9 +21,4 @@ func (s *Server) Protocol() string {
 
 func (s *Server) Config() interface{} {
 	return nil
-}
-
-// Run start http server.
-func (s *Server) Run() {
-
 }

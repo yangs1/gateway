@@ -11,13 +11,12 @@ type RoundRobinBalance struct {
 
 type RoundRobinNode struct {
 	*loadBalance.Node
-	currentWeight uint
 }
 
-func (r *RoundRobinBalance) Add(nodes ...*loadBalance.Node) error {
+func (r *RoundRobinBalance) Add(nodes ...loadBalance.Node) error {
 
 	for _, n := range nodes {
-		r.nodes = append(r.nodes, &RoundRobinNode{n, loadBalance.DefaultCheckTimeout})
+		r.nodes = append(r.nodes, &RoundRobinNode{&loadBalance.Node{Ip: n.Ip, Weight: n.Weight, EffectiveWeight: loadBalance.DefaultCheckMaxErrNum}})
 	}
 
 	return nil
@@ -41,4 +40,12 @@ func (r *RoundRobinBalance) Get(string) *loadBalance.Node {
 	}
 
 	return nil
+}
+
+func (r *RoundRobinBalance) Nodes() (nodes []*loadBalance.Node) {
+	for _, n := range r.nodes {
+		nodes = append(nodes, n.Node)
+	}
+
+	return nodes
 }

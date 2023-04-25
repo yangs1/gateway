@@ -12,13 +12,12 @@ type HashBalance struct {
 
 type HashNode struct {
 	*loadBalance.Node
-	currentWeight uint
 }
 
-func (r *HashBalance) Add(nodes ...*loadBalance.Node) error {
+func (r *HashBalance) Add(nodes ...loadBalance.Node) error {
 
 	for _, n := range nodes {
-		r.nodes = append(r.nodes, &HashNode{n, loadBalance.DefaultCheckTimeout})
+		r.nodes = append(r.nodes, &HashNode{&loadBalance.Node{Ip: n.Ip, Weight: n.Weight, EffectiveWeight: loadBalance.DefaultCheckMaxErrNum}})
 	}
 
 	return nil
@@ -32,4 +31,12 @@ func (r *HashBalance) Get(ip string) *loadBalance.Node {
 	}
 
 	return nil
+}
+
+func (r *HashBalance) Nodes() (nodes []*loadBalance.Node) {
+	for _, n := range r.nodes {
+		nodes = append(nodes, n.Node)
+	}
+
+	return nodes
 }

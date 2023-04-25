@@ -9,15 +9,13 @@ type WeightRoundRobinBalance struct {
 
 type WeightRoundRobinNode struct {
 	*loadBalance.Node
-	currentWeight   int
-	effectiveWeight int //有效权重
-
+	currentWeight int
 }
 
-func (r *WeightRoundRobinBalance) Add(nodes ...*loadBalance.Node) error {
+func (r *WeightRoundRobinBalance) Add(nodes ...loadBalance.Node) error {
 
 	for _, n := range nodes {
-		r.nodes = append(r.nodes, &WeightRoundRobinNode{n, n.Weight, n.Weight})
+		r.nodes = append(r.nodes, &WeightRoundRobinNode{&loadBalance.Node{Ip: n.Ip, Weight: n.Weight, EffectiveWeight: loadBalance.DefaultCheckMaxErrNum}, n.Weight})
 	}
 
 	return nil
@@ -29,14 +27,14 @@ func (r *WeightRoundRobinBalance) Next() *WeightRoundRobinNode {
 	for i := 0; i < len(r.nodes); i++ {
 		w := r.nodes[i]
 		//step 1 统计所有有效权重之和
-		total += w.effectiveWeight
+		total += w.EffectiveWeight
 
 		//step 2 变更节点临时权重为的节点临时权重+节点有效权重
-		w.currentWeight += w.effectiveWeight
+		w.currentWeight += w.EffectiveWeight
 
 		//step 3 有效权重默认与权重相同，通讯异常时-1, 通讯成功+1，直到恢复到weight大小
-		if w.effectiveWeight < w.Weight {
-			w.effectiveWeight++
+		if w.EffectiveWeight < w.Weight {
+			w.EffectiveWeight++
 		}
 		//step 4 选择最大临时权重点节点
 		if best == nil || w.currentWeight > best.currentWeight {
@@ -57,4 +55,12 @@ func (r *WeightRoundRobinBalance) Get(_ string) *loadBalance.Node {
 	}
 
 	return nil
+}
+
+func (r *WeightRoundRobinBalance) Nodes() (nodes []*loadBalance.Node) {
+	for _, n := range r.nodes {
+		nodes = append(nodes, n.Node)
+	}
+
+	return nodes
 }

@@ -8,7 +8,7 @@ type Server struct {
 
 type ServerDetail struct {
 	BaseInfo    *loadBalance.ServerInfo
-	LoadBalance *LoadBalanceNode
+	LoadBalance *LoadBalanceHandler
 }
 
 func (s *Server) IsBind() bool {

@@ -1,31 +1,30 @@
 package roundType
 
-import "gateway/protocols/loadBalance"
-
 type WeightRoundRobinBalance struct {
 	curIndex int
-	nodes    []*WeightRoundRobinNode
+	NodeHandler
 }
 
 type WeightRoundRobinNode struct {
-	*loadBalance.Node
+	Node
 	currentWeight int
 }
 
-func (r *WeightRoundRobinBalance) Add(nodes ...loadBalance.Node) error {
-
-	for _, n := range nodes {
-		r.nodes = append(r.nodes, &WeightRoundRobinNode{&loadBalance.Node{Ip: n.Ip, Weight: n.Weight, EffectiveWeight: loadBalance.DefaultCheckMaxErrNum}, n.Weight})
-	}
-
-	return nil
+func (r WeightRoundRobinNode) Get() Node {
+	return r.Node
 }
 
-func (r *WeightRoundRobinBalance) Next() *WeightRoundRobinNode {
+func (r *WeightRoundRobinBalance) Add(n Node) {
+	r.nodes = append(r.nodes, &WeightRoundRobinNode{n, 5})
+}
+
+func (r *WeightRoundRobinBalance) Next(_ string) NodeInterface {
+	nodes := r.nodes
+
 	total := 0
 	var best *WeightRoundRobinNode
-	for i := 0; i < len(r.nodes); i++ {
-		w := r.nodes[i]
+	for i := 0; i < len(nodes); i++ {
+		w := nodes[i].(*WeightRoundRobinNode)
 		//step 1 统计所有有效权重之和
 		total += w.EffectiveWeight
 
@@ -47,20 +46,4 @@ func (r *WeightRoundRobinBalance) Next() *WeightRoundRobinNode {
 	//step 5 变更临时权重为 临时权重-有效权重之和
 	best.currentWeight -= total
 	return best
-}
-
-func (r *WeightRoundRobinBalance) Get(_ string) *loadBalance.Node {
-	if n := r.Next(); n != nil {
-		return n.Node
-	}
-
-	return nil
-}
-
-func (r *WeightRoundRobinBalance) Nodes() (nodes []*loadBalance.Node) {
-	for _, n := range r.nodes {
-		nodes = append(nodes, n.Node)
-	}
-
-	return nodes
 }

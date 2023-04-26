@@ -1,29 +1,26 @@
 package roundType
 
-import (
-	"gateway/protocols/loadBalance"
-)
-
 type RoundRobinBalance struct {
 	curIndex int
-	nodes    []*RoundRobinNode
+	NodeHandler
 }
 
 type RoundRobinNode struct {
-	*loadBalance.Node
+	Node
 }
 
-func (r *RoundRobinBalance) Add(nodes ...loadBalance.Node) error {
-
-	for _, n := range nodes {
-		r.nodes = append(r.nodes, &RoundRobinNode{&loadBalance.Node{Ip: n.Ip, Weight: n.Weight, EffectiveWeight: loadBalance.DefaultCheckMaxErrNum}})
-	}
-
-	return nil
+func (r RoundRobinNode) Get() Node {
+	return r.Node
 }
 
-func (r *RoundRobinBalance) Next() *RoundRobinNode {
-	lens := len(r.nodes)
+func (r *RoundRobinBalance) Add(n Node) {
+	r.nodes = append(r.nodes, &RoundRobinNode{n})
+}
+
+func (r *RoundRobinBalance) Next(_ string) NodeInterface {
+	nodes := r.nodes
+
+	lens := len(nodes)
 
 	if lens == 0 {
 		return nil
@@ -31,21 +28,5 @@ func (r *RoundRobinBalance) Next() *RoundRobinNode {
 	// todo 需要 atomic 操作
 	r.curIndex = (r.curIndex + 1) % lens
 
-	return r.nodes[r.curIndex]
-}
-
-func (r *RoundRobinBalance) Get(string) *loadBalance.Node {
-	if n := r.Next(); n != nil {
-		return n.Node
-	}
-
-	return nil
-}
-
-func (r *RoundRobinBalance) Nodes() (nodes []*loadBalance.Node) {
-	for _, n := range r.nodes {
-		nodes = append(nodes, n.Node)
-	}
-
-	return nodes
+	return nodes[r.curIndex]
 }

@@ -19,51 +19,31 @@ const (
 	LbRandHash
 )
 
+type LoadBalance interface {
+	Add(roundType.Node)
+	Next(string) roundType.NodeInterface
+	Lists() []roundType.NodeInterface
+}
+
 type LoadBalanceHandler struct {
-	nodes BalanceNode
-}
-
-type BalanceNode interface {
-	Add(...Node) error
-	Get(string) *Node
-	Nodes() []*Node
-}
-
-type Node struct {
-	Ip              string
-	Weight          int
-	EffectiveWeight int
-}
-
-func (n *Node) OnHealthChange(checkRes bool) {
-	if checkRes {
-		if n.EffectiveWeight < DefaultCheckMaxErrNum {
-			n.EffectiveWeight++
-		}
-	} else {
-		if n.EffectiveWeight > 0 {
-			n.EffectiveWeight--
-		}
-	}
+	handler LoadBalance
 }
 
 func NewLoadBalance(lbType int) *LoadBalanceHandler {
-	var lb BalanceNode
+	loadbalance := new(LoadBalanceHandler)
 
 	switch lbType {
 	case LbRandom:
-		lb = &roundType.RandomBalance{}
-	case LbRoundRobin:
-		lb = &roundType.RoundRobinBalance{}
-	case LbRoundRobinWithWeight:
-		lb = &roundType.WeightRoundRobinBalance{}
+		loadbalance.handler = new(roundType.RandomBalance)
 	case LbRandHash:
-		lb = &roundType.HashBalance{}
+		loadbalance.handler = new(roundType.HashBalance)
+	case LbRoundRobin:
+		loadbalance.handler = new(roundType.RoundRobinBalance)
+	case LbRoundRobinWithWeight:
+		loadbalance.handler = new(roundType.WeightRoundRobinBalance)
 	}
 
-	return &LoadBalanceHandler{
-		nodes: lb,
-	}
+	return loadbalance
 }
 
 func (handler *LoadBalanceHandler) Watch() {
@@ -79,11 +59,11 @@ func (handler *LoadBalanceHandler) Watch() {
 	}()
 }
 
-func (handler *LoadBalanceHandler) healthChecker() {
-	nodes := handler.nodes.Nodes()
+func (loadbalance *LoadBalanceHandler) healthChecker() {
+	nodes := loadbalance.handler.Lists()
 
 	for _, n := range nodes {
-		conn, err := net.DialTimeout("tcp", n.Ip, time.Duration(DefaultCheckTimeout)*time.Second)
+		conn, err := net.DialTimeout("tcp", n.Get().Ip, time.Duration(DefaultCheckTimeout)*time.Second)
 		//todo http statuscode
 		if err == nil {
 			conn.Close()

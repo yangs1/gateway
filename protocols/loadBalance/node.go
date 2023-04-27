@@ -1,6 +1,7 @@
 package loadBalance
 
 import (
+	"fmt"
 	"gateway/protocols/loadBalance/roundType"
 	"net"
 	"time"
@@ -23,6 +24,7 @@ type LoadBalance interface {
 	Add(roundType.Node)
 	Next(...string) roundType.NodeInterface
 	Lists() []roundType.NodeInterface
+	ConnWatcher()
 }
 
 type LoadBalanceHandler struct {
@@ -59,17 +61,24 @@ func (handler *LoadBalanceHandler) Watch() {
 	}()
 }
 
-func (loadbalance *LoadBalanceHandler) healthChecker() {
-	nodes := loadbalance.Handler.Lists()
+func (handler *LoadBalanceHandler) healthChecker() {
+	nodes := handler.Handler.Lists()
 
 	for _, n := range nodes {
 		conn, err := net.DialTimeout("tcp", n.Get().Ip, time.Duration(DefaultCheckTimeout)*time.Second)
 		//todo http statuscode
+		// todo 检测失败最大次数
 		if err == nil {
 			conn.Close()
 			n.OnHealthChange(true)
+
+			fmt.Println(fmt.Sprintf("node: %s is success", n.Get().Ip))
+
 		} else {
+			fmt.Println(fmt.Sprintf("node: %s is fail", n.Get().Ip))
+
 			n.OnHealthChange(false)
 		}
 	}
+	handler.Handler.ConnWatcher()
 }

@@ -1,5 +1,7 @@
 package roundType
 
+import "fmt"
+
 const DefaultCheckMaxErrNum = 2
 
 type NodeInterface interface {
@@ -32,4 +34,27 @@ type NodeHandler struct {
 
 func (r *NodeHandler) Lists() []NodeInterface {
 	return append(r.nodes, r.failNodes...)
+}
+
+func (r *NodeHandler) ConnWatcher() {
+	var (
+		nodes     []NodeInterface
+		failNodes []NodeInterface
+	)
+
+	allNodes := r.Lists()
+	for _, n := range allNodes {
+		if n.Get().EffectiveWeight > 0 {
+			nodes = append(nodes, n)
+		} else {
+			failNodes = append(failNodes, n)
+		}
+	}
+
+	fmt.Println(fmt.Sprintf("success_node length: %d", len(nodes)))
+	fmt.Println(fmt.Sprintf("fail_node length: %d", len(failNodes)))
+	fmt.Println("================================")
+
+	r.nodes = nodes
+	r.failNodes = failNodes
 }

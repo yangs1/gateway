@@ -18,7 +18,7 @@ func (r *WeightRoundRobinBalance) Add(n Node) {
 	r.nodes = append(r.nodes, &WeightRoundRobinNode{n, 5})
 }
 
-func (r *WeightRoundRobinBalance) Next(_ string) NodeInterface {
+func (r *WeightRoundRobinBalance) Next(_ ...string) NodeInterface {
 	nodes := r.nodes
 
 	total := 0

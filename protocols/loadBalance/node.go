@@ -21,12 +21,12 @@ const (
 
 type LoadBalance interface {
 	Add(roundType.Node)
-	Next(string) roundType.NodeInterface
+	Next(...string) roundType.NodeInterface
 	Lists() []roundType.NodeInterface
 }
 
 type LoadBalanceHandler struct {
-	handler LoadBalance
+	Handler LoadBalance
 }
 
 func NewLoadBalance(lbType int) *LoadBalanceHandler {
@@ -34,13 +34,13 @@ func NewLoadBalance(lbType int) *LoadBalanceHandler {
 
 	switch lbType {
 	case LbRandom:
-		loadbalance.handler = new(roundType.RandomBalance)
+		loadbalance.Handler = new(roundType.RandomBalance)
 	case LbRandHash:
-		loadbalance.handler = new(roundType.HashBalance)
+		loadbalance.Handler = new(roundType.HashBalance)
 	case LbRoundRobin:
-		loadbalance.handler = new(roundType.RoundRobinBalance)
+		loadbalance.Handler = new(roundType.RoundRobinBalance)
 	case LbRoundRobinWithWeight:
-		loadbalance.handler = new(roundType.WeightRoundRobinBalance)
+		loadbalance.Handler = new(roundType.WeightRoundRobinBalance)
 	}
 
 	return loadbalance
@@ -60,7 +60,7 @@ func (handler *LoadBalanceHandler) Watch() {
 }
 
 func (loadbalance *LoadBalanceHandler) healthChecker() {
-	nodes := loadbalance.handler.Lists()
+	nodes := loadbalance.Handler.Lists()
 
 	for _, n := range nodes {
 		conn, err := net.DialTimeout("tcp", n.Get().Ip, time.Duration(DefaultCheckTimeout)*time.Second)

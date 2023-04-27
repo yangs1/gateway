@@ -17,7 +17,7 @@ func (r *RoundRobinBalance) Add(n Node) {
 	r.nodes = append(r.nodes, &RoundRobinNode{n})
 }
 
-func (r *RoundRobinBalance) Next(_ string) NodeInterface {
+func (r *RoundRobinBalance) Next(_ ...string) NodeInterface {
 	nodes := r.nodes
 
 	lens := len(nodes)

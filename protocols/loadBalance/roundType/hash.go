@@ -20,7 +20,11 @@ func (r *HashBalance) Add(n Node) {
 	r.nodes = append(r.nodes, &HashNode{n})
 }
 
-func (r *HashBalance) Next(ip string) NodeInterface {
+func (r *HashBalance) Next(key ...string) NodeInterface {
+	ip := ""
+	if len(key) > 0 {
+		ip = key[0]
+	}
 	nodes := r.nodes
 
 	index := int(crc32.ChecksumIEEE([]byte(ip))) % len(nodes)

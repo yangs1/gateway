@@ -21,7 +21,7 @@ func (r *RandomBalance) Add(n Node) {
 	r.nodes = append(r.nodes, &RandomNode{n})
 }
 
-func (r *RandomBalance) Next(_ string) NodeInterface {
+func (r *RandomBalance) Next(_ ...string) NodeInterface {
 	nodes := r.nodes
 	if len(nodes) == 0 {
 		return nil

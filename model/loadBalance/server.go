@@ -18,7 +18,7 @@ type ServerInfo struct {
 }
 
 func (_ *ServerInfo) TableName() string {
-	return "service_info"
+	return "server_info"
 }
 
 // ============================= service ================================================
@@ -28,7 +28,7 @@ func (s *ServerInfo) PageList(db *gorm.DB, page model.PageInput) ([]ServerInfo, 
 	list := []ServerInfo{} //切片
 	offset := (page.PageNum - 1) * page.PageSize
 
-	query := db.Table(s.TableName()).Where("dateled_at > 0")
+	query := db.Table(s.TableName())
 
 	tx := query.Limit(page.PageSize).Offset(offset).Order("id desc").Find(&list)
 

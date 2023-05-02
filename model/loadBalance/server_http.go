@@ -13,12 +13,12 @@ type ServerHttp struct {
 }
 
 func (_ *ServerHttp) TableName() string {
-	return "service_info"
+	return "server_http"
 }
 
 // ============================= service ================================================
 
-func (s *ServerHttp) PageList(db *gorm.DB, search *ServerInfo) ([]ServerHttp, error) {
+func (s *ServerHttp) PageList(db *gorm.DB, search ServerInfo) ([]ServerHttp, error) {
 
 	httpSearch := &ServerHttp{
 		ServerId: search.ID,

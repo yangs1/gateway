@@ -9,7 +9,7 @@ type ServerHttp struct {
 	ServerId uint `json:"server_id"`
 
 	Ip     string `json:"ip"`
-	Weight uint   `json:"weight"`
+	Weight int    `json:"weight"`
 }
 
 func (_ *ServerHttp) TableName() string {

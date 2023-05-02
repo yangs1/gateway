@@ -2,6 +2,7 @@ package loadBalance
 
 import (
 	"fmt"
+	"gateway/model/loadBalance"
 	"gateway/protocols/loadBalance/roundType"
 	"net"
 	"time"
@@ -28,7 +29,8 @@ type LoadBalance interface {
 }
 
 type LoadBalanceHandler struct {
-	Handler LoadBalance
+	roundType int
+	Handler   LoadBalance
 }
 
 func NewLoadBalance(lbType int) *LoadBalanceHandler {
@@ -45,7 +47,17 @@ func NewLoadBalance(lbType int) *LoadBalanceHandler {
 		loadbalance.Handler = new(roundType.WeightRoundRobinBalance)
 	}
 
+	loadbalance.roundType = lbType
+
 	return loadbalance
+}
+
+func (handler *LoadBalanceHandler) AddNode(node loadBalance.ServerHttp) {
+	handler.Handler.Add(roundType.Node{
+		Ip:              node.Ip,
+		Weight:          node.Weight,
+		EffectiveWeight: DefaultCheckMaxErrNum,
+	})
 }
 
 func (handler *LoadBalanceHandler) Watch() {

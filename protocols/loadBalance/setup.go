@@ -11,7 +11,7 @@ func init() {
 }
 
 func setup() protocols.Server {
-	server := &Server{}
+	server := NewServer()
 
 	return server
 }

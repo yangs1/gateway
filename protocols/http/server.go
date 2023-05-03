@@ -4,7 +4,7 @@ import (
 	"context"
 	"gateway/config"
 	"gateway/config/autoload"
-	"gateway/router"
+	"gateway/internal/router"
 	"go.uber.org/zap"
 	"net/http"
 	"time"

@@ -1,6 +1,7 @@
 package router
 
 import (
+	"gateway/internal/middleware"
 	"gateway/protocols"
 	"gateway/protocols/websocket"
 	"github.com/gin-gonic/gin"
@@ -14,9 +15,11 @@ func RegisterRouter() *gin.Engine {
 	//pprof.Register(router)
 
 	router.Use(
-	//middleware.LogMiddleware(),              // 记录请求日志
-	//middleware.LogRecoveryMiddleware(false), // 替换 gin 的 recovery 处理方法
-	//middleware.HttpReverseProxyMiddleware(), //代理到实际的服务工作负载
+		//middleware.LogMiddleware(),              // 记录请求日志
+		//middleware.LogRecoveryMiddleware(false), // 替换 gin 的 recovery 处理方法
+		middleware.HttpProxyModeMiddleware(), //负载均衡 server 加载
+		//middleware.HttpReverseProxyMiddleware(), //代理到实际的服务工作负载
+
 	)
 
 	// default request

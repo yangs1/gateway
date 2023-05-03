@@ -8,6 +8,8 @@ import (
 type ServerInfo struct {
 	gorm.Model
 	ServerType int    `json:"server_type" ` //接入类型,0是前缀
+	AccessType int    `json:"access_type"`  // 访问类型
+	AccessRule string `json:"access_rule"`  // 访问规则
 	RoundType  int    `json:"round_type"`   // 轮询方式
 	ServerName string `json:"service_name"`
 	ServerDesc string `json:"service_desc"`

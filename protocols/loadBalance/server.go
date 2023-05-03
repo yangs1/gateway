@@ -1,9 +1,24 @@
 package loadBalance
 
 import (
+	"fmt"
 	"gateway/config"
 	"gateway/model"
 	"gateway/model/loadBalance"
+	"sync"
+)
+
+//接入方式
+const (
+	TYPE_HTTP_SERVER = iota //http服务类型
+	TYPE_TCP_SERVER         //tcp 服务类型
+)
+
+//访问方式
+const (
+	TYPE_ACCESS_ALL = iota
+	TYPE_ACCESS_DOMAIN
+	TYPE_ACCESS_PRE_URL
 )
 
 type Server struct {
@@ -12,7 +27,16 @@ type Server struct {
 
 type ServerDetail struct {
 	BaseInfo    *loadBalance.ServerInfo
-	LoadBalance *LoadBalanceHandler
+	loadBalance *LoadBalanceHandler
+	init        sync.Once
+}
+
+// 健康检查
+func (s *ServerDetail) HealthCheck() {
+	s.init.Do(func() {
+		fmt.Println("gogogogogo")
+		s.loadBalance.Watch()
+	})
 }
 
 func NewServer() *Server {
@@ -27,7 +51,6 @@ func NewServer() *Server {
 
 	for _, infoModel := range serverLists {
 		lb := NewLoadBalance(infoModel.RoundType)
-
 		serverHttp := &loadBalance.ServerHttp{}
 		httpLists, _ := serverHttp.PageList(curDb, infoModel)
 
@@ -37,7 +60,7 @@ func NewServer() *Server {
 
 		server.LbHandler = append(server.LbHandler, &ServerDetail{
 			BaseInfo:    &infoModel,
-			LoadBalance: lb,
+			loadBalance: lb,
 		})
 	}
 

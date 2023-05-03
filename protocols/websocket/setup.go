@@ -3,7 +3,7 @@ package websocket
 import "gateway/protocols"
 
 const (
-	Protocol = "loadBalance"
+	Protocol = "websocket"
 )
 
 func init() {

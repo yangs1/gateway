@@ -1,11 +1,12 @@
 package loadBalance
 
 import (
+	"gateway/model"
 	"gorm.io/gorm"
 )
 
 type ServerHttp struct {
-	gorm.Model
+	model.Model
 	ServerId uint `json:"server_id"`
 
 	Ip     string `json:"ip"`

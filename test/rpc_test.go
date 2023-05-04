@@ -29,7 +29,7 @@ func TestRpc(t *testing.T) {
 
 	//发送消息
 	err2 := rpca.Call("Server.SendToConnections", &rpc.Message{
-		Connections: []string{"1"},
+		Connections: []string{"5"},
 		Msg:         "hello rpc",
 	}, &response)
 

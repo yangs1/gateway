@@ -51,7 +51,7 @@ func HttpProxyModeMiddleware() gin.HandlerFunc {
 		}
 
 		lbServer.HealthCheck()
-		ctx.Set("proxy_server", lbServer) //传递ServerDetail
-		ctx.Next()                        //传递给子context
+		ctx.Set("proxy", lbServer) //传递ServerDetail
+		ctx.Next()                 //传递给子context
 	}
 }

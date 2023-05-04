@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
@@ -84,18 +85,22 @@ func (s *Server) handleClients() {
 	}
 }
 
-func (s *Server) ServeWs(context *gin.Context) {
+func (s *Server) ServeWs(ctx *gin.Context) {
 	//panic("bbb")
-	conn, err := s.upgrader.Upgrade(context.Writer, context.Request, nil)
+	conn, err := s.upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		zap.L().Error("Websocket upgrade failed: %s"+err.Error(), zap.Error(err))
 		return
 	}
 
+	// 从 token 里面取值
+	id, _ := ctx.Get("user_id")
+
+	fmt.Println(id, "连接 websocket")
 	client := &Client{
 		conn:     conn,
 		send:     make(chan []byte, 1024),
-		clientId: "1",
+		clientId: id.(string),
 	}
 
 	s.register <- client

@@ -52,7 +52,7 @@ func (s *Server) SendToConnections(message *Message, reply *Response) error {
 	websocketServer, _ := protocols.ServerIoc.Load(websocket.Protocol)
 
 	for _, clientId := range message.Connections {
-		fmt.Println("clientId :" + clientId)
+		fmt.Println("clientId :", clientId)
 		if err := websocketServer.(*websocket.Server).SendToConnection(clientId, message.Msg); err != nil {
 			*reply = s.failure(400, err.Error())
 			return nil

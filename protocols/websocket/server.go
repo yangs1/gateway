@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
@@ -101,4 +102,19 @@ func (s *Server) ServeWs(context *gin.Context) {
 
 	go client.Write()
 	go client.Read()
+}
+
+func (s *Server) SendToConnection(connId string, msg string) error {
+	if client, ok := s.clients.Load(connId); ok {
+		select {
+		case client.(*Client).send <- []byte(msg):
+			//zap.L().Info("SendToConnection " + connId + ": " + msg)
+			return nil
+		default:
+			client.(*Client).Close()
+			return errors.New("send message failed to " + connId)
+		}
+	}
+
+	return errors.New("send message failed, connection: " + connId + " not found")
 }

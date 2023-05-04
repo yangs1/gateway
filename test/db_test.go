@@ -35,7 +35,7 @@ func TestDb(t *testing.T) {
 
 	// protocols 测试
 	aaaa, _ := protocols.ServerIoc.Load(loadBalance.Protocol)
-	t.Log(aaaa.(*loadBalance.Server).LbHandler[0].LoadBalance)
+	//t.Log(aaaa.(*loadBalance.Server).LbHandler[0].LoadBalance)
 	t.Log(aaaa.(*loadBalance.Server).LbHandler[0].BaseInfo)
 
 }

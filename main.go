@@ -6,6 +6,7 @@ import (
 	"gateway/initialize"
 	"gateway/protocols"
 	"gateway/protocols/http"
+	"gateway/protocols/rpc"
 	"log"
 	"os"
 	"os/signal"
@@ -27,6 +28,9 @@ func main() {
 		go func() {
 			engine.(*http.Server).Run()
 		}()
+
+		// 启动rpc 服务
+		go rpc.InitServer()
 
 		// 当前的goroutine等待信号量
 		quit := make(chan os.Signal)

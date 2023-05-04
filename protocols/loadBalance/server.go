@@ -39,7 +39,7 @@ func (s *ServerDetail) HealthCheck() {
 	})
 }
 
-func NewServer() *Server {
+func InitServer() *Server {
 
 	server := &Server{}
 
